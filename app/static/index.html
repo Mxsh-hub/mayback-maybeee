@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trust Index Console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="bg-orb bg-orb-left" aria-hidden="true"></div>
+  <div class="bg-orb bg-orb-right" aria-hidden="true"></div>
+
+  <header class="hero">
+    <p class="eyebrow">Multi-Dimensional Trust Index</p>
+    <h1>Behavior-first scoring dashboard</h1>
+    <p class="subtitle">Deterministic scoring, AI semantic labeling only, full explainability.</p>
+    <div class="status-bar">
+      <span class="status-label">API health:</span>
+      <span id="healthStatus" class="status-chip">checking...</span>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="card full-width">
+      <h2>Quick Demo</h2>
+      <p class="helper">Use this guided flow to populate sample data and compute Trust Index with one click.</p>
+      <div class="quick-grid">
+        <label>
+          Demo User ID
+          <input id="demoUserId" type="text" placeholder="demo_user_001" value="demo_user_001">
+        </label>
+        <div class="actions">
+          <button id="seedDataBtn" type="button" class="btn btn-secondary">Seed Demo Data</button>
+          <button id="runDemoBtn" type="button" class="btn">Run Full Demo</button>
+        </div>
+      </div>
+      <p id="quickHint" class="callout">Seed data inserts a deterministic multi-month dataset (income, commitments, discretionary spikes, emergency events).</p>
+    </section>
+
+    <section class="card">
+      <h2>1) Ingest Transactions</h2>
+      <p class="helper">Manual ingest for custom testing. The sample button fills a small starter payload.</p>
+      <textarea id="ingestPayload" spellcheck="false"></textarea>
+      <div class="actions">
+        <button id="sampleBtn" type="button" class="btn btn-secondary">Load Sample</button>
+        <button id="ingestBtn" type="button" class="btn">Ingest</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>2) Classify Expenses</h2>
+      <p class="helper">Runs AI classification and caches output in DB. Seeded demo data is pre-labeled for speed.</p>
+      <div class="form-grid">
+        <label>
+          User ID
+          <input id="classifyUserId" type="text" placeholder="user_001">
+        </label>
+        <label>
+          Start Date (optional)
+          <input id="classifyStartDate" type="date">
+        </label>
+        <label>
+          End Date (optional)
+          <input id="classifyEndDate" type="date">
+        </label>
+      </div>
+      <div class="actions">
+        <button id="classifyBtn" type="button" class="btn">Classify</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>3) Compute Trust Index</h2>
+      <p class="helper">Deterministic weighted score from 0 to 100.</p>
+      <div class="form-grid">
+        <label>
+          User ID
+          <input id="scoreUserId" type="text" placeholder="user_001">
+        </label>
+        <label>
+          Start Date (optional)
+          <input id="scoreStartDate" type="date">
+        </label>
+        <label>
+          End Date (optional)
+          <input id="scoreEndDate" type="date">
+        </label>
+      </div>
+      <div class="actions">
+        <button id="scoreBtn" type="button" class="btn">Generate Score</button>
+      </div>
+      <div id="scoreSummary" class="score-summary hidden"></div>
+      <div id="dimensionGrid" class="metric-grid hidden"></div>
+    </section>
+
+    <section class="card output-card">
+      <h2>Response</h2>
+      <pre id="outputPanel">Run any action to see results here.</pre>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
