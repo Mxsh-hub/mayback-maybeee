@@ -243,19 +243,6 @@ def build_sample_transactions(user_id: str) -> list[TransactionIn]:
     return transactions
 
 
-def build_sample_classification_map(user_id: str) -> dict[str, dict[str, Any]]:
-    mapping: dict[str, dict[str, Any]] = {}
-    for idx, row in enumerate(_SAMPLE_ROWS, start=1):
-        if row["direction"] != "expense":
-            continue
-        mapping[_sample_transaction_ref(user_id, idx)] = {
-            "category": row["category"],
-            "intent_label": row["intent_label"],
-            "essentiality": int(row["essentiality"]),
-        }
-    return mapping
-
-
 def extract_months_covered(transactions: list[TransactionIn]) -> list[str]:
     months = sorted({txn.txn_date.strftime("%Y-%m") for txn in transactions})
     return months

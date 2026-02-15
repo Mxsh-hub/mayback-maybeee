@@ -34,14 +34,12 @@ def generate_trust_index(
     if not transactions:
         raise HTTPException(status_code=404, detail="No transactions found for user")
 
-    missing_expenses = [
-        tx for tx in transactions if tx.direction == "expense" and tx.classification is None
-    ]
+    expenses = [tx for tx in transactions if tx.direction == "expense"]
 
-    if missing_expenses:
+    if expenses:
         classifier = AIClassifierService()
         try:
-            classifier.ensure_expense_classifications(db=db, expenses=missing_expenses)
+            classifier.ensure_expense_classifications(db=db, expenses=expenses)
             transactions = fetch_transactions_with_classification(
                 db=db,
                 user_id=user_id,

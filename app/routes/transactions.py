@@ -1,5 +1,3 @@
-import json
-
 from fastapi import APIRouter, Body, Depends, HTTPException, Path
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -14,14 +12,12 @@ from app.models.schemas import (
     ScoreRequest,
 )
 from app.services.ai_classifier.service import AIClassificationError, AIClassifierService
-from app.services.ai_classifier.repository import bulk_upsert_classifications
 from app.services.data_loader.loader import ingest_transactions
 from app.services.data_loader.repository import (
     delete_seed_transactions_by_user,
     fetch_transactions_with_classification,
 )
 from app.services.data_loader.sample_data import (
-    build_sample_classification_map,
     build_sample_transactions,
     extract_months_covered,
 )
@@ -49,38 +45,11 @@ def seed_sample_data(
         sample_transactions = build_sample_transactions(user_id=request.user_id)
         ingest_result = ingest_transactions(db=db, transactions=sample_transactions)
 
-        classification_map = build_sample_classification_map(user_id=request.user_id)
-        seeded_transactions = fetch_transactions_with_classification(
-            db=db,
-            user_id=request.user_id,
-        )
-
-        classification_rows: list[dict] = []
-        for tx in seeded_transactions:
-            if tx.source != "seed_dataset_v1" or tx.direction != "expense":
-                continue
-            labels = classification_map.get(tx.transaction_ref)
-            if labels is None:
-                continue
-            classification_rows.append(
-                {
-                    "transaction_id": tx.id,
-                    "category": labels["category"],
-                    "intent_label": labels["intent_label"],
-                    "essentiality": labels["essentiality"],
-                    "model_name": "seed_dataset_v1_manual",
-                    "raw_json": json.dumps(labels, ensure_ascii=True),
-                }
-            )
-
-        if classification_rows:
-            bulk_upsert_classifications(db=db, records=classification_rows)
-
         return SampleSeedResponse(
             user_id=request.user_id,
             months_covered=extract_months_covered(sample_transactions),
             transaction_count=len(sample_transactions),
-            seeded_classifications=len(classification_rows),
+            seeded_classifications=0,
             deleted_existing=deleted_existing,
             **ingest_result,
         )

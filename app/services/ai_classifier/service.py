@@ -14,7 +14,6 @@ from app.services.ai_classifier.prompting import (
 )
 from app.services.ai_classifier.repository import (
     bulk_upsert_classifications,
-    fetch_classifications_by_transaction_ids,
 )
 
 ALLOWED_CATEGORY = {"essential", "non_essential", "emergency"}
@@ -132,19 +131,9 @@ class AIClassifierService:
         if not expenses:
             return {"scanned_expenses": 0, "newly_classified": 0, "already_cached": 0}
 
-        tx_ids = [tx.id for tx in expenses]
-        cached = fetch_classifications_by_transaction_ids(db, tx_ids)
-
-        missing = [tx for tx in expenses if tx.id not in cached]
-        if not missing:
-            return {
-                "scanned_expenses": len(expenses),
-                "newly_classified": 0,
-                "already_cached": len(cached),
-            }
-
         rows: list[dict] = []
-        for tx in missing:
+        # Always re-run AI analysis, even for previously classified transactions.
+        for tx in expenses:
             result = self._classify_transaction(tx)
             rows.append(
                 {
@@ -168,5 +157,6 @@ class AIClassifierService:
         return {
             "scanned_expenses": len(expenses),
             "newly_classified": len(rows),
-            "already_cached": len(cached),
+            # Report zero because classification results are never reused.
+            "already_cached": 0,
         }

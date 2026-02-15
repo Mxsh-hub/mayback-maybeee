@@ -216,7 +216,7 @@ async function seedSampleData(userId) {
   const range = getDateRangeFromMonths(seedResult.months_covered);
   applyDateRange(range);
 
-  quickHint.textContent = `Seeded ${seedResult.transaction_count} transactions across ${seedResult.months_covered.join(", ")}. Preloaded classifications: ${seedResult.seeded_classifications}.`;
+  quickHint.textContent = `Seeded ${seedResult.transaction_count} transactions across ${seedResult.months_covered.join(", ")}. AI analysis is re-run on every classify/score request.`;
   return { seedResult, range };
 }
 

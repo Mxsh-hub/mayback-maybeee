@@ -1,13 +1,13 @@
 :root {
-  --bg: #f5f2ea;
-  --ink: #1f2a2e;
-  --ink-soft: #4a5a5f;
-  --card: #fffdf7;
-  --line: #d8d0bf;
-  --accent: #0f8b8d;
-  --accent-dark: #0d6f71;
-  --warn: #9f2d2d;
-  --shadow: 0 16px 40px rgba(18, 37, 38, 0.12);
+  --bg: #050505;
+  --ink: #f1f3ff;
+  --ink-soft: #acb1cb;
+  --card: rgba(16, 16, 20, 0.82);
+  --line: rgba(149, 154, 188, 0.24);
+  --accent: #6f43ff;
+  --accent-dark: #5028cb;
+  --warn: #d15a5a;
+  --shadow: 0 20px 48px rgba(0, 0, 0, 0.42);
 }
 
 * {
@@ -18,44 +18,27 @@ body {
   margin: 0;
   font-family: "Space Grotesk", "Segoe UI", sans-serif;
   color: var(--ink);
-  background: radial-gradient(circle at 0% 0%, #fff9e9 0%, var(--bg) 55%);
+  background:
+    radial-gradient(circle at 22% 18%, rgba(111, 67, 255, 0.16) 0%, rgba(5, 5, 5, 0) 36%),
+    radial-gradient(circle at 88% 80%, rgba(50, 220, 255, 0.08) 0%, rgba(5, 5, 5, 0) 40%),
+    #050505;
   min-height: 100vh;
   padding: 24px;
-}
-
-.bg-orb {
-  position: fixed;
-  z-index: -1;
-  border-radius: 50%;
-  filter: blur(46px);
-  opacity: 0.35;
-}
-
-.bg-orb-left {
-  width: 280px;
-  height: 280px;
-  left: -90px;
-  top: -90px;
-  background: #ffc971;
-}
-
-.bg-orb-right {
-  width: 320px;
-  height: 320px;
-  right: -120px;
-  bottom: -120px;
-  background: #8de2d4;
+  position: relative;
+  overflow-x: hidden;
 }
 
 .hero {
   max-width: 1080px;
   margin: 0 auto 20px;
   animation: rise 360ms ease-out both;
+  position: relative;
+  z-index: 2;
 }
 
 .eyebrow {
   margin: 0 0 6px;
-  color: var(--accent-dark);
+  color: #9f8dff;
   font-size: 0.82rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -79,7 +62,7 @@ h1 {
   padding: 8px 10px;
   border: 1px solid var(--line);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.65);
+  background: rgba(21, 22, 30, 0.72);
 }
 
 .status-label {
@@ -92,17 +75,17 @@ h1 {
   font-weight: 700;
   border-radius: 999px;
   padding: 4px 10px;
-  background: #efefef;
+  background: #252739;
 }
 
 .status-good {
-  background: #d8f5ef;
-  color: #0a5f4f;
+  background: rgba(69, 201, 152, 0.18);
+  color: #8df0ca;
 }
 
 .status-bad {
-  background: #ffdfe0;
-  color: #8f2528;
+  background: rgba(209, 90, 90, 0.2);
+  color: #ffaaaa;
 }
 
 .layout {
@@ -111,6 +94,8 @@ h1 {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
+  position: relative;
+  z-index: 2;
 }
 
 .card {
@@ -118,6 +103,7 @@ h1 {
   border: 1px solid var(--line);
   border-radius: 16px;
   box-shadow: var(--shadow);
+  backdrop-filter: blur(4px);
   padding: 18px;
   animation: rise 420ms ease-out both;
 }
@@ -144,7 +130,7 @@ input {
   border-radius: 10px;
   font: inherit;
   color: var(--ink);
-  background: #fff;
+  background: rgba(20, 22, 30, 0.9);
 }
 
 textarea {
@@ -193,10 +179,10 @@ label {
 .callout {
   margin: 12px 0 0;
   padding: 10px 12px;
-  border: 1px solid #c9decf;
+  border: 1px solid rgba(122, 126, 160, 0.4);
   border-radius: 10px;
-  background: #f2fbf7;
-  color: #205445;
+  background: rgba(28, 30, 42, 0.9);
+  color: #bcc1dc;
   font-size: 0.88rem;
 }
 
@@ -229,7 +215,7 @@ label {
 }
 
 .btn-secondary {
-  background: #3f5261;
+  background: #2d334d;
 }
 
 .output-card {
@@ -242,7 +228,7 @@ pre {
   min-height: 220px;
   max-height: 420px;
   overflow: auto;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(125, 131, 163, 0.35);
   border-radius: 10px;
   background: #12181c;
   color: #d7f8f2;
@@ -251,11 +237,11 @@ pre {
 
 .score-summary {
   margin-top: 12px;
-  border: 1px solid #b9decf;
+  border: 1px solid rgba(111, 67, 255, 0.5);
   border-radius: 10px;
-  background: #edfbf6;
+  background: rgba(111, 67, 255, 0.16);
   padding: 10px 12px;
-  color: #174e40;
+  color: #d5c9ff;
   font-size: 0.9rem;
 }
 
@@ -267,10 +253,10 @@ pre {
 }
 
 .metric-card {
-  border: 1px solid #d7d9cc;
+  border: 1px solid rgba(122, 126, 160, 0.35);
   border-radius: 10px;
   padding: 10px;
-  background: #fffef9;
+  background: rgba(20, 21, 28, 0.86);
 }
 
 .metric-name {

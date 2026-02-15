@@ -7,11 +7,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="stylesheet" href="/static/dot-grid.css?v=2">
+  <link rel="stylesheet" href="/static/styles.css?v=2">
 </head>
 <body>
-  <div class="bg-orb bg-orb-left" aria-hidden="true"></div>
-  <div class="bg-orb bg-orb-right" aria-hidden="true"></div>
+  <section id="dotGridBackground" class="dot-grid-bg" aria-hidden="true"></section>
 
   <header class="hero">
     <p class="eyebrow">Multi-Dimensional Trust Index</p>
@@ -52,7 +52,7 @@
 
     <section class="card">
       <h2>2) Classify Expenses</h2>
-      <p class="helper">Runs AI classification and caches output in DB. Seeded demo data is pre-labeled for speed.</p>
+      <p class="helper">Runs AI classification and overwrites labels every request (no reuse from prior runs).</p>
       <div class="form-grid">
         <label>
           User ID
@@ -102,6 +102,9 @@
     </section>
   </main>
 
-  <script src="/static/app.js"></script>
+  <script src="/static/vendor/gsap/gsap.min.js?v=3"></script>
+  <script src="/static/vendor/gsap/InertiaPlugin.min.js?v=3"></script>
+  <script src="/static/dot-grid.js?v=3"></script>
+  <script src="/static/app.js?v=3"></script>
 </body>
 </html>
