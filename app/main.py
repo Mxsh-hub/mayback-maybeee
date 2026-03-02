@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from app.config import get_settings
-from app.db.mysql import Base, engine
+from app.db.database import Base, engine
 from app.routes import frontend, health, scoring, transactions
 
 settings = get_settings()
@@ -16,7 +16,8 @@ app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
 @app.on_event("startup")
 def on_startup() -> None:
-    Base.metadata.create_all(bind=engine)
+    if settings.db_auto_create:
+        Base.metadata.create_all(bind=engine)
 
 
 app.include_router(health.router)

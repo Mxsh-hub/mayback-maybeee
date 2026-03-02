@@ -5,7 +5,7 @@ from collections.abc import Iterable, Sequence
 from datetime import datetime
 
 from sqlalchemy import delete, func, select, tuple_
-from sqlalchemy.dialects.mysql import insert as mysql_insert
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session, selectinload
 
 from app.models.db_models import Transaction
@@ -66,16 +66,21 @@ def bulk_upsert_transactions(db: Session, transactions: list[TransactionIn]) -> 
         existing_keys.update((row[0], row[1]) for row in db.execute(stmt).all())
 
     for row_chunk in _chunked(rows, 1000):
-        stmt = mysql_insert(Transaction).values(list(row_chunk))
+        stmt = pg_insert(Transaction).values(list(row_chunk))
         update_map = {
-            "txn_date": stmt.inserted.txn_date,
-            "description": stmt.inserted.description,
-            "amount": stmt.inserted.amount,
-            "direction": stmt.inserted.direction,
-            "source": stmt.inserted.source,
+            "txn_date": stmt.excluded.txn_date,
+            "description": stmt.excluded.description,
+            "amount": stmt.excluded.amount,
+            "direction": stmt.excluded.direction,
+            "source": stmt.excluded.source,
             "updated_at": func.now(),
         }
-        db.execute(stmt.on_duplicate_key_update(**update_map))
+        db.execute(
+            stmt.on_conflict_do_update(
+                index_elements=[Transaction.user_id, Transaction.transaction_ref],
+                set_=update_map,
+            )
+        )
 
     db.commit()
 

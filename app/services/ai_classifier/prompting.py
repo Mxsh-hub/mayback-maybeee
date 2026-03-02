@@ -41,6 +41,7 @@ Rules:
    - 0 means pure luxury/avoidable.
    - 10 means survival-critical.
 5) No extra keys, no explanations, no markdown.
+6) Output must be a JSON object only. Do not wrap in backticks.
 
 Transaction:
 - date: {txn_date.isoformat()}

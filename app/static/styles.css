@@ -252,6 +252,46 @@ pre {
   gap: 8px;
 }
 
+.tx-table-wrap {
+  margin-top: 10px;
+  border: 1px solid rgba(125, 131, 163, 0.35);
+  border-radius: 10px;
+  overflow: auto;
+  max-height: 420px;
+  background: rgba(20, 21, 28, 0.86);
+}
+
+.tx-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1180px;
+  font-size: 0.82rem;
+}
+
+.tx-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  text-align: left;
+  background: #1a1d29;
+  color: #cfd4ef;
+  border-bottom: 1px solid rgba(125, 131, 163, 0.35);
+  padding: 9px 10px;
+  font-weight: 700;
+}
+
+.tx-table tbody td {
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(125, 131, 163, 0.18);
+  color: #dce2ff;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.tx-table tbody tr:hover {
+  background: rgba(111, 67, 255, 0.12);
+}
+
 .metric-card {
   border: 1px solid rgba(122, 126, 160, 0.35);
   border-radius: 10px;

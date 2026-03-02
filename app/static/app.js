@@ -6,65 +6,21 @@ const healthStatus = document.getElementById("healthStatus");
 const quickHint = document.getElementById("quickHint");
 const scoreSummary = document.getElementById("scoreSummary");
 const dimensionGrid = document.getElementById("dimensionGrid");
+const transactionsSummary = document.getElementById("transactionsSummary");
+const transactionsTableWrap = document.getElementById("transactionsTableWrap");
+const transactionsTableBody = document.getElementById("transactionsTableBody");
 
 const demoUserIdInput = document.getElementById("demoUserId");
 const classifyUserIdInput = document.getElementById("classifyUserId");
 const scoreUserIdInput = document.getElementById("scoreUserId");
+const viewUserIdInput = document.getElementById("viewUserId");
 
 const classifyStartDateInput = document.getElementById("classifyStartDate");
 const classifyEndDateInput = document.getElementById("classifyEndDate");
 const scoreStartDateInput = document.getElementById("scoreStartDate");
 const scoreEndDateInput = document.getElementById("scoreEndDate");
-
-const samplePayloadTemplate = {
-  transactions: [
-    {
-      user_id: DEFAULT_DEMO_USER,
-      transaction_ref: "starter_0001",
-      txn_date: "2026-01-05",
-      description: "Monthly Salary Credit",
-      amount: 120000,
-      direction: "income",
-      source: "manual_starter"
-    },
-    {
-      user_id: DEFAULT_DEMO_USER,
-      transaction_ref: "starter_0002",
-      txn_date: "2026-01-06",
-      description: "House Rent Payment",
-      amount: 35000,
-      direction: "expense",
-      source: "manual_starter"
-    },
-    {
-      user_id: DEFAULT_DEMO_USER,
-      transaction_ref: "starter_0003",
-      txn_date: "2026-01-10",
-      description: "Credit Card Bill Payment",
-      amount: 6200,
-      direction: "expense",
-      source: "manual_starter"
-    },
-    {
-      user_id: DEFAULT_DEMO_USER,
-      transaction_ref: "starter_0004",
-      txn_date: "2026-01-12",
-      description: "Grocery Supermarket",
-      amount: 9800,
-      direction: "expense",
-      source: "manual_starter"
-    },
-    {
-      user_id: DEFAULT_DEMO_USER,
-      transaction_ref: "starter_0005",
-      txn_date: "2026-01-15",
-      description: "Online Gadget Purchase",
-      amount: 22000,
-      direction: "expense",
-      source: "manual_starter"
-    }
-  ]
-};
+const viewStartDateInput = document.getElementById("viewStartDate");
+const viewEndDateInput = document.getElementById("viewEndDate");
 
 function printResult(title, payload, isError = false) {
   const stamp = new Date().toLocaleString();
@@ -100,6 +56,7 @@ function readOptionalDates(startInput, endInput) {
 function setUserAcrossForms(userId) {
   classifyUserIdInput.value = userId;
   scoreUserIdInput.value = userId;
+  viewUserIdInput.value = userId;
 }
 
 function normalizeUserId() {
@@ -107,16 +64,6 @@ function normalizeUserId() {
   demoUserIdInput.value = userId;
   setUserAcrossForms(userId);
   return userId;
-}
-
-function buildStarterPayload(userId) {
-  return {
-    transactions: samplePayloadTemplate.transactions.map((txn, idx) => ({
-      ...txn,
-      user_id: userId,
-      transaction_ref: `starter_${userId}_${String(idx + 1).padStart(4, "0")}`
-    }))
-  };
 }
 
 function getDateRangeFromMonths(monthsCovered) {
@@ -175,6 +122,37 @@ async function postJson(path, body) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body || {})
   });
+
+  const rawText = await response.text();
+  let parsed = {};
+  if (rawText.trim()) {
+    try {
+      parsed = JSON.parse(rawText);
+    } catch (_err) {
+      parsed = { raw: rawText };
+    }
+  }
+
+  if (!response.ok) {
+    const err = new Error(`HTTP ${response.status}`);
+    err.details = parsed;
+    throw err;
+  }
+
+  return parsed;
+}
+
+async function getJson(path, query) {
+  const params = new URLSearchParams();
+  if (query?.start_date) {
+    params.set("start_date", query.start_date);
+  }
+  if (query?.end_date) {
+    params.set("end_date", query.end_date);
+  }
+
+  const suffix = params.toString() ? `?${params.toString()}` : "";
+  const response = await fetch(`${API_PREFIX}${path}${suffix}`);
 
   const rawText = await response.text();
   let parsed = {};
@@ -275,32 +253,6 @@ function wireQuickDemo() {
   });
 }
 
-function wireIngest() {
-  const ingestPayload = document.getElementById("ingestPayload");
-  const sampleBtn = document.getElementById("sampleBtn");
-  const ingestBtn = document.getElementById("ingestBtn");
-
-  ingestPayload.value = JSON.stringify(buildStarterPayload(normalizeUserId()), null, 2);
-
-  sampleBtn.addEventListener("click", () => {
-    const userId = normalizeUserId();
-    ingestPayload.value = JSON.stringify(buildStarterPayload(userId), null, 2);
-  });
-
-  ingestBtn.addEventListener("click", async () => {
-    setBusy(ingestBtn, true, "Ingesting...");
-    try {
-      const payload = JSON.parse(ingestPayload.value);
-      const data = await postJson("/transactions/ingest", payload);
-      printResult("Ingest Success", data);
-    } catch (error) {
-      printResult("Ingest Failed", error.details || { message: error.message }, true);
-    } finally {
-      setBusy(ingestBtn, false, "Ingesting...");
-    }
-  });
-}
-
 function wireClassify() {
   const classifyBtn = document.getElementById("classifyBtn");
   classifyBtn.addEventListener("click", async () => {
@@ -351,8 +303,67 @@ function wireScore() {
   });
 }
 
+function renderTransactionsTable(data) {
+  const rows = data.transactions || [];
+  if (rows.length === 0) {
+    transactionsSummary.classList.remove("hidden");
+    transactionsSummary.textContent = "No transactions found for this user in the selected range.";
+    transactionsTableBody.innerHTML = "";
+    transactionsTableWrap.classList.add("hidden");
+    return;
+  }
+
+  const html = rows.map((row) => `
+    <tr>
+      <td>${row.txn_date || "-"}</td>
+      <td>${row.description || "-"}</td>
+      <td>${row.amount}</td>
+      <td>${row.direction || "-"}</td>
+      <td>${row.transaction_ref || "-"}</td>
+      <td>${row.source || "-"}</td>
+      <td>${row.category || "-"}</td>
+      <td>${row.intent_label || "-"}</td>
+      <td>${row.essentiality ?? "-"}</td>
+      <td>${row.model_name || "-"}</td>
+      <td>${row.created_at || "-"}</td>
+      <td>${row.updated_at || "-"}</td>
+    </tr>
+  `).join("");
+
+  transactionsTableBody.innerHTML = html;
+  transactionsSummary.classList.remove("hidden");
+  transactionsSummary.textContent = `Loaded ${rows.length} transactions for user ${data.user_id}.`;
+  transactionsTableWrap.classList.remove("hidden");
+}
+
+function wireTransactionsView() {
+  const viewTransactionsBtn = document.getElementById("viewTransactionsBtn");
+  viewTransactionsBtn.addEventListener("click", async () => {
+    const userId = (viewUserIdInput.value || demoUserIdInput.value).trim();
+    if (!userId) {
+      printResult("Load Transactions Failed", { message: "User ID is required." }, true);
+      return;
+    }
+
+    setBusy(viewTransactionsBtn, true, "Loading...");
+    try {
+      const query = readOptionalDates(viewStartDateInput, viewEndDateInput);
+      const data = await getJson(`/transactions/user/${encodeURIComponent(userId)}`, query);
+      renderTransactionsTable(data);
+      // Show every returned transaction detail in the Response panel.
+      printResult("Transactions Loaded", data);
+    } catch (error) {
+      transactionsSummary.classList.add("hidden");
+      transactionsTableWrap.classList.add("hidden");
+      printResult("Load Transactions Failed", error.details || { message: error.message }, true);
+    } finally {
+      setBusy(viewTransactionsBtn, false, "Loading...");
+    }
+  });
+}
+
 checkHealth();
 wireQuickDemo();
-wireIngest();
 wireClassify();
 wireScore();
+wireTransactionsView();

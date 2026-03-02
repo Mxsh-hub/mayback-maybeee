@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from pydantic import Field
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -8,7 +8,10 @@ class Settings(BaseSettings):
     app_name: str = Field(default="Trust Index API", alias="APP_NAME")
     api_prefix: str = Field(default="/api/v1", alias="API_PREFIX")
 
-    mysql_url: str = Field(alias="MYSQL_URL")
+    database_url: str = Field(
+        validation_alias=AliasChoices("DATABASE_URL", "SUPABASE_DB_URL", "MYSQL_URL"),
+    )
+    db_auto_create: bool = Field(default=False, alias="DB_AUTO_CREATE")
 
     ollama_base_url: str = Field(default="http://localhost:11434", alias="OLLAMA_BASE_URL")
     ollama_model: str = Field(default="llama3.2", alias="OLLAMA_MODEL")

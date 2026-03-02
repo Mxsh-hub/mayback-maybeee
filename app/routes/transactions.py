@@ -1,8 +1,10 @@
-from fastapi import APIRouter, Body, Depends, HTTPException, Path
+from datetime import date
+
+from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from app.db.mysql import get_db
+from app.db.database import get_db
 from app.models.schemas import (
     ClassificationRunResponse,
     IngestRequest,
@@ -10,6 +12,8 @@ from app.models.schemas import (
     SampleSeedRequest,
     SampleSeedResponse,
     ScoreRequest,
+    TransactionDetail,
+    TransactionListResponse,
 )
 from app.services.ai_classifier.service import AIClassificationError, AIClassifierService
 from app.services.data_loader.loader import ingest_transactions
@@ -88,3 +92,44 @@ def classify_transactions(
         raise HTTPException(status_code=500, detail=f"Failed to persist classifications: {exc}") from exc
 
     return ClassificationRunResponse(user_id=user_id, **result)
+
+
+@router.get("/user/{user_id}", response_model=TransactionListResponse)
+def list_user_transactions(
+    user_id: str = Path(min_length=1, max_length=64),
+    start_date: date | None = Query(default=None),
+    end_date: date | None = Query(default=None),
+    db: Session = Depends(get_db),
+) -> TransactionListResponse:
+    try:
+        transactions = fetch_transactions_with_classification(
+            db=db,
+            user_id=user_id,
+            start_date=start_date,
+            end_date=end_date,
+        )
+    except SQLAlchemyError as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to read transactions: {exc}") from exc
+
+    payload = [
+        TransactionDetail(
+            transaction_id=tx.id,
+            user_id=tx.user_id,
+            transaction_ref=tx.transaction_ref,
+            txn_date=tx.txn_date,
+            description=tx.description,
+            amount=float(tx.amount),
+            direction=tx.direction,
+            source=tx.source,
+            category=tx.classification.category if tx.classification else None,
+            intent_label=tx.classification.intent_label if tx.classification else None,
+            essentiality=int(tx.classification.essentiality) if tx.classification else None,
+            model_name=tx.classification.model_name if tx.classification else None,
+            created_at=tx.created_at,
+            updated_at=tx.updated_at,
+            classification_updated_at=(tx.classification.updated_at if tx.classification else None),
+        )
+        for tx in transactions
+    ]
+
+    return TransactionListResponse(user_id=user_id, total=len(payload), transactions=payload)

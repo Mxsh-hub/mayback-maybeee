@@ -58,6 +58,30 @@ class SampleSeedResponse(BaseModel):
     updated: int
 
 
+class TransactionDetail(BaseModel):
+    transaction_id: int
+    user_id: str
+    transaction_ref: str
+    txn_date: date
+    description: str
+    amount: float
+    direction: Literal["income", "expense"]
+    source: str | None
+    category: Literal["essential", "non_essential", "emergency"] | None = None
+    intent_label: Literal["planned", "impulse", "na"] | None = None
+    essentiality: int | None = None
+    model_name: str | None = None
+    created_at: datetime
+    updated_at: datetime
+    classification_updated_at: datetime | None = None
+
+
+class TransactionListResponse(BaseModel):
+    user_id: str
+    total: int
+    transactions: list[TransactionDetail]
+
+
 class DimensionResult(BaseModel):
     score: float
     weight: float

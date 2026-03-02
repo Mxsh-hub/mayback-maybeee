@@ -4,7 +4,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException, Path
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from app.db.mysql import get_db
+from app.db.database import get_db
 from app.models.schemas import DimensionResult, ScoreRequest, TrustIndexResponse
 from app.services.ai_classifier.service import AIClassificationError, AIClassifierService
 from app.services.data_loader.loader import transactions_to_dataframe

@@ -4,7 +4,7 @@ from collections.abc import Iterable, Sequence
 from datetime import datetime
 
 from sqlalchemy import select
-from sqlalchemy.dialects.mysql import insert as mysql_insert
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 
 from app.models.db_models import TransactionClassification
@@ -42,15 +42,20 @@ def bulk_upsert_classifications(db: Session, records: list[dict]) -> None:
     rows = list(deduped.values())
 
     for row_chunk in _chunked(rows, 500):
-        stmt = mysql_insert(TransactionClassification).values(list(row_chunk))
+        stmt = pg_insert(TransactionClassification).values(list(row_chunk))
         update_map = {
-            "category": stmt.inserted.category,
-            "intent_label": stmt.inserted.intent_label,
-            "essentiality": stmt.inserted.essentiality,
-            "model_name": stmt.inserted.model_name,
-            "raw_json": stmt.inserted.raw_json,
-            "updated_at": stmt.inserted.updated_at,
+            "category": stmt.excluded.category,
+            "intent_label": stmt.excluded.intent_label,
+            "essentiality": stmt.excluded.essentiality,
+            "model_name": stmt.excluded.model_name,
+            "raw_json": stmt.excluded.raw_json,
+            "updated_at": stmt.excluded.updated_at,
         }
-        db.execute(stmt.on_duplicate_key_update(**update_map))
+        db.execute(
+            stmt.on_conflict_do_update(
+                index_elements=[TransactionClassification.transaction_id],
+                set_=update_map,
+            )
+        )
 
     db.commit()

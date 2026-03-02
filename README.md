@@ -1,4 +1,4 @@
-# Multi-Dimensional Trust Index (FastAPI + MySQL + Ollama)
+# Multi-Dimensional Trust Index (FastAPI + Supabase Postgres + Ollama)
 
 Deterministic behavioral financial scoring with explainable 0-100 output.
 
@@ -8,7 +8,7 @@ Deterministic behavioral financial scoring with explainable 0-100 output.
 - AI never computes score values.
 - Scoring is deterministic and formula-driven.
 - All dimension details are exposed for judge-friendly explainability.
-- Classification outputs are cached in MySQL.
+- Classification outputs are cached in Supabase Postgres.
 
 ## Architecture
 
@@ -29,14 +29,49 @@ pip install -r requirements.txt
 ```
 
 3. Create `.env` from `.env.example` and update values.
-4. Ensure MySQL database exists.
+4. Configure Supabase Postgres in `DATABASE_URL`.
 5. Start Ollama with `llama3.2` available.
+
+### Security-first runtime setup (recommended)
+
+Use a least-privilege DB role for runtime instead of `postgres`.
+
+1. Set `ADMIN_DATABASE_URL` to your admin connection string.
+2. Set `APP_DB_ROLE`, `APP_DB_PASSWORD`, and `SUPABASE_PROJECT_REF`.
+3. Run:
+
+```bash
+python scripts/provision_supabase_app_role.py
+```
+
+4. Copy the printed runtime URL into `DATABASE_URL`.
+5. Keep `DB_AUTO_CREATE=false` in production.
+
+`postgres` should only be used for one-time admin/provisioning tasks.
 
 ## Run
 
 ```bash
 uvicorn app.main:app --reload
 ```
+
+## Migrate Existing Local MySQL Data to Supabase
+
+If you already have historical data in local MySQL, you can migrate it to Supabase.
+
+1. Keep your target Supabase URL in `DATABASE_URL`.
+2. Add your source MySQL URL in `SOURCE_MYSQL_URL`.
+3. Run:
+
+```bash
+python scripts/migrate_mysql_to_supabase.py
+```
+
+The script migrates both:
+- `transactions`
+- `transaction_classifications`
+
+It preserves IDs and foreign key relations, and updates Postgres sequences after migration.
 
 ## Core endpoints
 
@@ -47,7 +82,7 @@ uvicorn app.main:app --reload
 - `POST /api/v1/transactions/classify/{user_id}`
 - `POST /api/v1/trust-index/{user_id}`
 
-`/transactions/seed-sample` is idempotent per user for seeded rows, replaces older seeded rows, and preloads deterministic semantic labels for seeded expenses.
+`/transactions/seed-sample` is idempotent per user for seeded rows and replaces older seeded rows.
 
 ## Example ingest payload
 
